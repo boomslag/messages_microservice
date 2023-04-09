@@ -18,9 +18,13 @@ environ.Env.read_env()
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG')
+DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS_DEV')
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    
 CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST_DEV')
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS_DEV')
 
@@ -112,27 +116,41 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'boomslag_messages_db',
-        'USER': 'boomslag',
-        'PASSWORD': 'postgres',
-        'HOST': 'db_messages',
-        'PORT': '5432',
-    }
+    "default": env.db("DATABASE_URL"),
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'boomslag_messages_db',
+#         'USER': 'boomslag',
+#         'PASSWORD': 'postgres',
+#         'HOST': 'db_messages',
+#         'PORT': '5432',
+#     }
+# }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://redis:6379/0",
+        "LOCATION": env("REDIS_URL"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            # "CONNECTION_POOL_KWARGS": {"max_connections": 250},
+            "PASSWORD": env("REDIS_PASSWORD", default=None),
+            "SSL": True,
         },
     }
 }
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://redis:6379/0",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#             # "CONNECTION_POOL_KWARGS": {"max_connections": 250},
+#         },
+#     }
+# }
 # DEFAULT_CACHE_ALIAS = "default"
 
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
