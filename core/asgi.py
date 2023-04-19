@@ -15,4 +15,5 @@ application = ProtocolTypeRouter({
             ChatRouting.websocket_urlpatterns
         )
     ),
+    "websocket_timeout": 60,  # Increase this value as needed
 })

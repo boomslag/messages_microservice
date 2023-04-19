@@ -14,21 +14,7 @@ class InboxConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         # Get UserID
-        # self.user_id = self.scope['query_string'].decode('utf-8').split('=')[1]
-        token = self.scope["query_string"].decode().split("=")[1]
-        try:
-            payload = jwt.decode(token, secret_key, algorithms=["HS256"])
-            self.user_id = payload["user_id"]
-        except jwt.ExpiredSignatureError:
-            # Handle expired token error
-            await self.close()
-        except jwt.DecodeError:
-            # Handle invalid token error
-            await self.close()
-        except Exception:
-            # Handle other errors
-            await self.close()
-
+        self.user_id = self.scope['query_string'].decode('utf-8').split('=')[1]
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = "inbox_%s" % self.room_name
         print(f'User {self.user_id} joined Websocket with Group name {self.room_group_name}')
@@ -124,38 +110,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         # Get UserID
-        token = self.scope["query_string"].decode().split("=")[1]
-        try:
-            payload = jwt.decode(token, secret_key, algorithms=["HS256"])
-            self.user_id = payload["user_id"]
-        except jwt.ExpiredSignatureError:
-            # Handle expired token error
-            await self.close()
-        except jwt.DecodeError:
-            # Handle invalid token error
-            await self.close()
-        except Exception:
-            # Handle other errors
-            await self.close()
+        self.user_id = self.scope['query_string'].decode('utf-8').split('=')[1]
 
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = "chat_%s" % self.room_name
 
         # Join room group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-        await self.set_user_chatroom_status(True)
+        # await self.set_user_chatroom_status(True)
 
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Leave room group
-        await self.remove_user_from_stream()
-        await self.set_user_chatroom_status(False)
+        # # Leave room group
+        # await self.remove_user_from_stream()
+        # await self.set_user_chatroom_status(False)
 
-        participants = await self.get_online_participants()
-        await self.send_online_participants(participants)
-        
+        # participants = await self.get_online_participants()
+        # await self.send_online_participants(participants)
+        print("Disconnect method called")
+
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+        # Close the WebSocket connection
+        await self.close()
 
     @database_sync_to_async
     def set_user_chatroom_status(self, status):

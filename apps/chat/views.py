@@ -96,7 +96,7 @@ class StartConversationView(StandardAPIView):
         to_user_username = str(data['to_user_username'])
 
         from_user = str(payload['user_id'])
-        from_user_username = str(payload['username'])
+        from_user_username = str(data['from_user_username'])
 
         # Check if a chat already exists between the two users
         chats = Chat.objects.filter(participants__uuid=from_user).filter(participants__uuid=to_user)
